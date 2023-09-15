@@ -19,8 +19,9 @@ using namespace _VampPlugin;
 
 namespace PluginAdapter
 {
-    VampInputDescriptor* create(PluginExtension::InputDescriptor const& pluginInputDescriptor);
     void release(VampInputDescriptor* inputDescriptor);
+    VampInputDescriptor* create(PluginExtension::InputDescriptor const& pluginInputDescriptor);
+    VampOutputExtraDescriptor* create(PluginExtension::OutputExtraDescriptor const& pluginOutputExtraDescriptor);
     Vamp::Plugin::FeatureSet convert(unsigned int numFeatures, VampFeatureList const* features);
 
     template <typename DerivedPlugin>
@@ -80,6 +81,31 @@ namespace PluginAdapter
                 return;
             }
             plugin->setPreComputingFeatures(convert(numFeatures, features));
+        };
+
+        descriptor->getOuputExtraCount = [](VampPluginHandle handle, unsigned int index) -> unsigned int
+        {
+            auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
+            if(plugin == nullptr)
+            {
+                return 0u;
+            }
+            return static_cast<unsigned int>(plugin->getOutputExtraDescriptors(static_cast<size_t>(index)).size());
+        };
+
+        descriptor->getOuputExtraDescriptor = [](VampPluginHandle handle, unsigned int index, unsigned int subindex) -> VampInputDescriptor*
+        {
+            auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
+            if(plugin == nullptr)
+            {
+                return nullptr;
+            }
+            auto const outputExtraDescriptors = plugin->getOutputExtraDescriptors(index);
+            if(static_cast<size_t>(subindex) >= outputExtraDescriptors.size())
+            {
+                return nullptr;
+            }
+            return create(outputExtraDescriptors.at(static_cast<size_t>(subindex)));
         };
 
         return descriptor.release();

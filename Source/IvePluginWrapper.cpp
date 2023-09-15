@@ -6,10 +6,11 @@ IVE_FILE_BEGIN
 
 void PluginWrapper::FeatureContainer::initialize(Vamp::Plugin::FeatureSet const& fs)
 {
-    mFeatureList.resize(fs.size());
-    mFeatures.resize(fs.size());
-    mData.resize(fs.size());
-    for(size_t descriptorIndex = 0; descriptorIndex < fs.size(); ++descriptorIndex)
+    auto const size = fs.empty() ? static_cast<size_t>(0) : fs.crbegin()->first + static_cast<size_t>(1);
+    mFeatureList.resize(size);
+    mFeatures.resize(size);
+    mData.resize(size);
+    for(size_t descriptorIndex = 0; descriptorIndex < size; ++descriptorIndex)
     {
         auto& descFeatures = mFeatures[descriptorIndex];
         auto& descDatas = mData[descriptorIndex];
@@ -48,8 +49,8 @@ void PluginWrapper::FeatureContainer::initialize(Vamp::Plugin::FeatureSet const&
             descDatas.clear();
         }
 
-        mFeatureList[descriptorIndex].featureCount = static_cast<unsigned int>(descFeatures.size()) / 2u;
-        mFeatureList[descriptorIndex].features = descFeatures.data();
+        mFeatureList[descriptorIndex].featureCount = descFeatures.empty() ? 0u : static_cast<unsigned int>(descFeatures.size()) / 2u;
+        mFeatureList[descriptorIndex].features = descFeatures.empty() ? nullptr : descFeatures.data();
     }
 }
 
@@ -143,7 +144,7 @@ PluginWrapper::~PluginWrapper()
 
 PluginWrapper::InputList PluginWrapper::getInputDescriptors() const
 {
-    if(mDescriptor == nullptr || mPluginHandle == nullptr)
+    if(!isVersionSupported(0, 0, 1))
     {
         return {};
     }
@@ -207,12 +208,68 @@ PluginWrapper::InputList PluginWrapper::getInputDescriptors() const
 
 void PluginWrapper::setPreComputingFeatures(Vamp::Plugin::FeatureSet const& fs)
 {
-    if(mDescriptor == nullptr || mPluginHandle == nullptr)
+    if(!isVersionSupported(0, 0, 1))
     {
         return;
     }
     mComputingFeatures.initialize(fs);
     mDescriptor->setPreComputingFeatures(mPluginHandle, mComputingFeatures.getSize(), mComputingFeatures.getData());
+}
+
+PluginWrapper::OutputExtraList PluginWrapper::getOutputExtraDescriptors(size_t outputDescriptorIndex) const
+{
+    if(!isVersionSupported(0, 0, 2))
+    {
+        return {};
+    }
+    OutputExtraList list;
+    auto const count = mDescriptor->getOuputExtraCount(mPluginHandle, static_cast<unsigned int>(outputDescriptorIndex));
+    for(auto i = 0u; i < count; ++i)
+    {
+        auto* outputExtraDescriptor = mDescriptor->getOuputExtraDescriptor(mPluginHandle, static_cast<unsigned int>(outputDescriptorIndex), i);
+        if(outputExtraDescriptor != nullptr)
+        {
+            OutputExtraDescriptor d;
+            d.identifier = outputExtraDescriptor->identifier;
+            d.name = outputExtraDescriptor->name;
+            d.description = outputExtraDescriptor->description;
+            d.unit = outputExtraDescriptor->unit;
+            d.hasKnownExtents = outputExtraDescriptor->hasKnownExtents;
+            d.minValue = outputExtraDescriptor->minValue;
+            d.maxValue = outputExtraDescriptor->maxValue;
+            d.isQuantized = outputExtraDescriptor->isQuantized;
+            d.quantizeStep = outputExtraDescriptor->quantizeStep;
+            list.push_back(std::move(d));
+            mDescriptor->releaseInputDescriptor(outputExtraDescriptor);
+        }
+    }
+
+    return list;
+}
+
+bool PluginWrapper::isVersionSupported(int major, int minor, int patch) const
+{
+    if(mDescriptor == nullptr || mPluginHandle == nullptr)
+    {
+        return false;
+    }
+    if(mDescriptor->api_version_major < major)
+    {
+        return false;
+    }
+    if(mDescriptor->api_version_major > major)
+    {
+        return true;
+    }
+    if(mDescriptor->api_version_minor < minor)
+    {
+        return false;
+    }
+    if(mDescriptor->api_version_minor > minor)
+    {
+        return true;
+    }
+    return mDescriptor->api_version_patch >= patch;
 }
 
 IVE_FILE_END

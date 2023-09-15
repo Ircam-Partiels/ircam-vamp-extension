@@ -8,6 +8,34 @@
 
 IVE_FILE_BEGIN
 
+void PluginAdapter::release(VampInputDescriptor* inputDescriptor)
+{
+    auto descriptor = std::unique_ptr<VampInputDescriptor>(inputDescriptor);
+    if(descriptor == nullptr)
+    {
+        return;
+    }
+    auto const free_string = [](char const* str)
+    {
+        if(str != nullptr)
+        {
+            std::free(static_cast<void*>(const_cast<char*>(str)));
+        }
+    };
+    free_string(descriptor->identifier);
+    free_string(descriptor->name);
+    free_string(descriptor->description);
+    free_string(descriptor->unit);
+    if(descriptor->binNames != nullptr)
+    {
+        for(size_t i = 0; i < static_cast<size_t>(descriptor->binCount); ++i)
+        {
+            free_string(descriptor->binNames[i]);
+        }
+        std::free(static_cast<void*>(descriptor->binNames));
+    }
+}
+
 VampInputDescriptor* PluginAdapter::create(PluginExtension::InputDescriptor const& pluginInputDescriptor)
 {
     auto descriptor = std::make_unique<VampInputDescriptor>();
@@ -66,32 +94,29 @@ VampInputDescriptor* PluginAdapter::create(PluginExtension::InputDescriptor cons
     return descriptor.release();
 }
 
-void PluginAdapter::release(VampInputDescriptor* inputDescriptor)
+VampOutputExtraDescriptor* PluginAdapter::create(PluginExtension::OutputExtraDescriptor const& pluginOutputExtraDescriptor)
 {
-    auto descriptor = std::unique_ptr<VampInputDescriptor>(inputDescriptor);
+    auto descriptor = std::make_unique<VampOutputExtraDescriptor>();
     if(descriptor == nullptr)
     {
-        return;
+        return nullptr;
     }
-    auto const free_string = [](char const* str)
-    {
-        if(str != nullptr)
-        {
-            std::free(static_cast<void*>(const_cast<char*>(str)));
-        }
-    };
-    free_string(descriptor->identifier);
-    free_string(descriptor->name);
-    free_string(descriptor->description);
-    free_string(descriptor->unit);
-    if(descriptor->binNames != nullptr)
-    {
-        for(size_t i = 0; i < static_cast<size_t>(descriptor->binCount); ++i)
-        {
-            free_string(descriptor->binNames[i]);
-        }
-        std::free(static_cast<void*>(descriptor->binNames));
-    }
+    descriptor->identifier = strdup(pluginOutputExtraDescriptor.identifier.c_str());
+    descriptor->name = strdup(pluginOutputExtraDescriptor.name.c_str());
+    descriptor->description = strdup(pluginOutputExtraDescriptor.description.c_str());
+    descriptor->unit = strdup(pluginOutputExtraDescriptor.unit.c_str());
+    descriptor->hasFixedBinCount = true;
+    descriptor->binCount = 1;
+    descriptor->binNames = NULL;
+    descriptor->hasKnownExtents = static_cast<int>(pluginOutputExtraDescriptor.hasKnownExtents);
+    descriptor->minValue = pluginOutputExtraDescriptor.minValue;
+    descriptor->maxValue = pluginOutputExtraDescriptor.maxValue;
+    descriptor->isQuantized = pluginOutputExtraDescriptor.isQuantized;
+    descriptor->quantizeStep = pluginOutputExtraDescriptor.quantizeStep;
+    descriptor->sampleType = vampFixedSampleRate;
+    descriptor->sampleRate = 0.0;
+    descriptor->hasDuration = false;
+    return descriptor.release();
 }
 
 Vamp::Plugin::FeatureSet PluginAdapter::convert(unsigned int numFeatures, VampFeatureList const* features)

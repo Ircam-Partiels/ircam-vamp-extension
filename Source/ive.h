@@ -35,6 +35,7 @@ IVE_EXTERN_CPP_BEGIN
 #include <vamp/vamp.h>
 
 typedef VampOutputDescriptor VampInputDescriptor;
+typedef VampOutputDescriptor VampOutputExtraDescriptor;
 
 typedef struct _IvePluginDescriptor
 {
@@ -43,11 +44,16 @@ typedef struct _IvePluginDescriptor
     int const api_version_patch = IVE_VERSION_PATCH;
     char const* identifier;
 
+    // 0.0.1
     unsigned int (*getInputCount)(VampPluginHandle handle);
     VampInputDescriptor* (*getInputDescriptor)(VampPluginHandle handle, unsigned int index);
     void (*releaseInputDescriptor)(VampInputDescriptor* inputDescriptor);
 
     void (*setPreComputingFeatures)(VampPluginHandle handle, unsigned int numFeatures, VampFeatureList const* features);
+
+    // 0.0.2
+    unsigned int (*getOuputExtraCount)(VampPluginHandle handle, unsigned int index);
+    VampOutputExtraDescriptor* (*getOuputExtraDescriptor)(VampPluginHandle handle, unsigned int index, unsigned int subindex);
 } IvePluginDescriptor;
 
 IVE_EXTERN IvePluginDescriptor const* iveGetPluginDescriptor(unsigned int hostApiVersion, unsigned int index);

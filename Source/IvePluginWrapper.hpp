@@ -30,7 +30,11 @@ public:
     InputList getInputDescriptors() const override;
     void setPreComputingFeatures(Vamp::Plugin::FeatureSet const& fs) override;
 
+    OutputExtraList getOutputExtraDescriptors(size_t outputDescriptorIndex) const override;
+
 private:
+    bool isVersionSupported(int major, int minor, int patch) const;
+
     class FeatureContainer
     {
     public:

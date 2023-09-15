@@ -5,7 +5,7 @@ if(NOT EXISTS ${VAMP_SDK_PATH})
   message(FATAL_ERROR "The path to the Vamp plugin SDK is not valid: " ${VAMP_PLUGIN_SDK_PATH})
 endif()
 
-project(IrcamVampExtension VERSION 0.0.1 LANGUAGES C CXX)
+project(IrcamVampExtension VERSION 0.0.2 LANGUAGES C CXX)
 
 # Host Section
 
