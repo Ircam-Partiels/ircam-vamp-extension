@@ -247,6 +247,40 @@ PluginWrapper::OutputExtraList PluginWrapper::getOutputExtraDescriptors(size_t o
     return list;
 }
 
+bool PluginWrapper::supportColorMap(int index) const
+{
+    if(!isVersionSupported(0, 0, 3))
+    {
+        return false;
+    }
+    return mDescriptor->supportColorMap(mPluginHandle, index);
+}
+
+std::vector<PluginWrapper::Color> PluginWrapper::getColorMap(int index, Vamp::Plugin::Feature const& feature)
+{
+    if(!isVersionSupported(0, 0, 3))
+    {
+        return {};
+    }
+    Vamp::Plugin::FeatureSet fs;
+    fs[index] = {feature};
+    mColorFeatures.initialize(fs);
+    if(mColorFeatures.getSize() == 0)
+    {
+        return {};
+    }
+    auto* colorList = mDescriptor->getColorMap(mPluginHandle, index, mColorFeatures.getData());
+    if(colorList == nullptr || colorList->colors == nullptr || colorList->colorCount == 0)
+    {
+        return {};
+    }
+    std::vector<PluginWrapper::Color> colorMap;
+    colorMap.resize(static_cast<size_t>(colorList->colorCount));
+    std::copy(colorList->colors, colorList->colors + colorList->colorCount, colorMap.begin());
+    mDescriptor->releaseColorMap(colorList);
+    return colorMap;
+}
+
 bool PluginWrapper::isVersionSupported(int major, int minor, int patch) const
 {
     if(mDescriptor == nullptr || mPluginHandle == nullptr)

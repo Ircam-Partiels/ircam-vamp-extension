@@ -174,6 +174,34 @@ Vamp::Plugin::FeatureSet PluginAdapter::convert(unsigned int numFeatures, VampFe
     return fs;
 }
 
+void PluginAdapter::release(IveColorList* colorList)
+{
+    auto list = std::unique_ptr<IveColorList>(colorList);
+    if(list == nullptr)
+    {
+        return;
+    }
+    if(list->colorCount != 0 && list->colors != nullptr)
+    {
+        std::free(list->colors);
+        list->colors = nullptr;
+    }
+}
+
+IveColorList* PluginAdapter::create(std::vector<std::uint32_t> const& colorMap)
+{
+    auto list = std::make_unique<IveColorList>();
+    if(list == nullptr)
+    {
+        return nullptr;
+    }
+    auto const size = colorMap.size();
+    list->colors = static_cast<uint32_t*>(malloc(size * sizeof(uint32_t)));
+    std::copy(colorMap.cbegin(), colorMap.cend(), list->colors);
+    list->colorCount = list->colors != nullptr ? static_cast<unsigned int>(size) : 0;
+    return list.release();
+}
+
 IVE_FILE_END
 
 #ifdef _MSC_VER

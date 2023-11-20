@@ -23,6 +23,8 @@ namespace PluginAdapter
     VampInputDescriptor* create(PluginExtension::InputDescriptor const& pluginInputDescriptor);
     VampOutputExtraDescriptor* create(PluginExtension::OutputExtraDescriptor const& pluginOutputExtraDescriptor);
     Vamp::Plugin::FeatureSet convert(unsigned int numFeatures, VampFeatureList const* features);
+    void release(IveColorList* colorList);
+    IveColorList* create(std::vector<std::uint32_t> const& colorMap);
 
     template <typename DerivedPlugin>
     IvePluginDescriptor* getDescriptor()
@@ -106,6 +108,38 @@ namespace PluginAdapter
                 return nullptr;
             }
             return create(outputExtraDescriptors.at(static_cast<size_t>(subindex)));
+        };
+
+        descriptor->supportColorMap = [](VampPluginHandle handle, int index) -> unsigned char
+        {
+            auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
+            if(plugin == nullptr)
+            {
+                return 0u;
+            }
+            return static_cast<unsigned char>(plugin->supportColorMap(index));
+        };
+
+        descriptor->getColorMap = [](VampPluginHandle handle, int index, VampFeatureList const* features) -> IveColorList*
+        {
+            auto* plugin = static_cast<PluginExtension*>(reinterpret_cast<DerivedPlugin*>(handle));
+            if(plugin == nullptr || features == nullptr)
+            {
+                return nullptr;
+            }
+            auto const fs = convert(1u, features);
+            auto const it = fs.find(0);
+            if(it == fs.cend() || it->second.empty())
+            {
+                return nullptr;
+            }
+            auto const colorMap = plugin->getColorMap(index, it->second.at(0));
+            return create(colorMap);
+        };
+
+        descriptor->releaseColorMap = [](IveColorList* list)
+        {
+            release(list);
         };
 
         return descriptor.release();

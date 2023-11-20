@@ -32,10 +32,17 @@
 
 IVE_EXTERN_CPP_BEGIN
 
+#include <stdint.h>
 #include <vamp/vamp.h>
 
 typedef VampOutputDescriptor VampInputDescriptor;
 typedef VampOutputDescriptor VampOutputExtraDescriptor;
+
+typedef struct _IveColorList
+{
+    unsigned int colorCount;
+    uint32_t* colors;
+} IveColorList;
 
 typedef struct _IvePluginDescriptor
 {
@@ -54,6 +61,11 @@ typedef struct _IvePluginDescriptor
     // 0.0.2
     unsigned int (*getOuputExtraCount)(VampPluginHandle handle, unsigned int index);
     VampOutputExtraDescriptor* (*getOuputExtraDescriptor)(VampPluginHandle handle, unsigned int index, unsigned int subindex);
+
+    // 0.0.3
+    unsigned char (*supportColorMap)(VampPluginHandle handle, int index);
+    IveColorList* (*getColorMap)(VampPluginHandle, int index, VampFeatureList const* features);
+    void (*releaseColorMap)(IveColorList* map);
 } IvePluginDescriptor;
 
 IVE_EXTERN IvePluginDescriptor const* iveGetPluginDescriptor(unsigned int hostApiVersion, unsigned int index);

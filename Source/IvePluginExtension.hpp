@@ -55,4 +55,19 @@ public:
 
     //! @brief Gets the input descriptors of the plugin
     virtual OutputExtraList getOutputExtraDescriptors([[maybe_unused]] size_t outputDescriptorIndex) const { return {}; }
+
+    //! @brief Gets if the plugin supports color mapping
+    //! @details The color mapping  might be only
+    virtual bool supportColorMap([[maybe_unused]] int index) const { return false; }
+
+    //! @brief A color
+    //! @details The format is ((alpha << 24) | (red << 16) | (green << 8) | blue) but the alpha might be ignored
+    using Color = std::uint32_t;
+
+    //! @brief Gets color map for a feature
+    virtual std::vector<Color> getColorMap([[maybe_unused]] int index, [[maybe_unused]] Vamp::Plugin::Feature const& feature)
+    {
+        assert(false);
+        return {};
+    }
 };
