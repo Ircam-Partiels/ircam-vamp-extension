@@ -5,6 +5,8 @@ if(NOT EXISTS ${VAMP_SDK_PATH})
   message(FATAL_ERROR "The path to the Vamp plugin SDK is not valid: " ${VAMP_PLUGIN_SDK_PATH})
 endif()
 
+option(IVE_PLUGIN_EXAMPLE "Generate the IVE pluhin example" OFF)
+
 project(IrcamVampExtension VERSION 0.0.3 LANGUAGES C CXX)
 
 # Host Section
@@ -120,3 +122,11 @@ function(ive_prepare_plugin_target target)
     set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
   endif()
 endfunction(ive_prepare_plugin_target)
+
+if(IVE_PLUGIN_EXAMPLE)
+  file(GLOB IVE_PLUGIN_EXAMPLE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/Example/IvePluginExample.h ${CMAKE_CURRENT_SOURCE_DIR}/Example/IvePluginExample.cpp)
+  source_group("Examples" FILES ${IVE_PLUGIN_EXAMPLE_SOURCES})
+  add_library(ive_plugin_example SHARED ${IVE_PLUGIN_EXAMPLE_SOURCES})
+  ive_prepare_plugin_target(ive_plugin_example)
+endif(IVE_PLUGIN_EXAMPLE)
+
