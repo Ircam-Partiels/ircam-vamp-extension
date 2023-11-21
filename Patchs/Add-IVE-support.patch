@@ -1,0 +1,44 @@
+From 51c9dfd709899e58b5faee1beed9431dd17fb3bb Mon Sep 17 00:00:00 2001
+From: Pierre Guillot <guillotpierre6@gmail.com>
+Date: Fri, 24 Feb 2023 17:50:47 +0100
+Subject: [PATCH] vamp-hostsdk: Add methods to support IVE (Ircam Vamp
+ Extension)
+
+---
+ vamp-hostsdk/PluginHostAdapter.h | 4 ++++
+ vamp-hostsdk/PluginWrapper.h     | 4 ++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/vamp-hostsdk/PluginHostAdapter.h b/vamp-hostsdk/PluginHostAdapter.h
+index 2ca1d69..84b800f 100644
+--- a/vamp-hostsdk/PluginHostAdapter.h
++++ b/vamp-hostsdk/PluginHostAdapter.h
+@@ -106,6 +106,10 @@ public:
+     FeatureSet process(const float *const *inputBuffers, RealTime timestamp);
+ 
+     FeatureSet getRemainingFeatures();
++    
++    VampPluginHandle getPluginHandle() {
++        return m_handle;
++    }
+ 
+ protected:
+     void convertFeatures(VampFeatureList *, FeatureSet &);
+diff --git a/vamp-hostsdk/PluginWrapper.h b/vamp-hostsdk/PluginWrapper.h
+index e4e421d..da64db0 100644
+--- a/vamp-hostsdk/PluginWrapper.h
++++ b/vamp-hostsdk/PluginWrapper.h
+@@ -123,6 +123,10 @@ public:
+         if (pw) return pw->getWrapper<WrapperType>();
+         return 0;
+     }
++    
++    Plugin *getPlugin() {
++        return m_plugin;
++    }
+ 
+     /**
+      * Disown the wrapped plugin, so that we no longer delete it on
+-- 
+2.39.3 (Apple Git-145)
+

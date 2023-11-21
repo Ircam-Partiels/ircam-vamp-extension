@@ -1,13 +1,29 @@
 cmake_minimum_required(VERSION 3.18)
 
-set(VAMP_SDK_PATH "" CACHE PATH "The path to the Vamp plugin SDK")
-if(NOT EXISTS ${VAMP_SDK_PATH})
-  message(FATAL_ERROR "The path to the Vamp plugin SDK is not valid: " ${VAMP_PLUGIN_SDK_PATH})
-endif()
+project(IrcamVampExtension VERSION 0.0.3 LANGUAGES C CXX)
 
 option(IVE_PLUGIN_EXAMPLE "Generate the IVE pluhin example" OFF)
 
-project(IrcamVampExtension VERSION 0.0.3 LANGUAGES C CXX)
+set(VAMP_SDK_PATH "" CACHE PATH "The path to the Vamp plugin SDK")
+if(NOT EXISTS ${VAMP_SDK_PATH})
+  include(FetchContent)
+  find_package(Git REQUIRED)
+  FetchContent_Declare(
+    vamp-plugin-sdk
+    GIT_REPOSITORY https://github.com/c4dm/vamp-plugin-sdk.git
+    GIT_TAG        7df85ecf98d9477c1ac5a36f51807062e00d8695
+    EXCLUDE_FROM_ALL
+  )
+  FetchContent_MakeAvailable(vamp-plugin-sdk)
+  set(VAMP_SDK_PATH ${vamp-plugin-sdk_SOURCE_DIR})
+
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_SOURCE_DIR}/Patchs/Add-IVE-support.patch
+    WORKING_DIRECTORY ${VAMP_SDK_PATH}
+  )
+
+  message(STATUS "Vamp Plugin SDK cloned in " ${VAMP_SDK_PATH})
+endif()
 
 # Host Section
 
