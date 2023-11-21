@@ -1,0 +1,79 @@
+
+stages:
+  - test
+  - build
+  - format
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+Test::MacOS:
+  stage: test
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[debug]/'
+  tags:
+    - osx
+  script:
+    - cd $CI_PROJECT_DIR
+    - cmake . -B build -G Xcode -DIVE_PLUGIN_EXAMPLE=ON
+    - cmake --build build --config Debug
+
+Test::Windows:
+  stage: test
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[debug]/'
+  tags:
+    - windows
+  script:
+    - cd $CI_PROJECT_DIR
+    - cmake . -B build -G "Visual Studio 17 2022" -A x64 -DIVE_PLUGIN_EXAMPLE=ON
+    - cmake --build build --config Debug
+
+Test::Linux:
+  stage: test
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /\[debug]/'
+  tags:
+    - linux
+  script:
+    - cd $CI_PROJECT_DIR
+    - cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DIVE_PLUGIN_EXAMPLE=ON
+    - cmake --build build
+
+Build::MacOS:
+  stage: build
+  tags:
+    - osx
+  script:
+    - cd $CI_PROJECT_DIR
+    - cmake . -B build -G Xcode -DIVE_PLUGIN_EXAMPLE=ON
+    - cmake --build build --config Release
+
+Build::Windows:
+  stage: build
+  tags:
+    - windows
+  script:
+    - cd $CI_PROJECT_DIR
+    - cmake . -B build -G "Visual Studio 17 2022" -A x64 -DIVE_PLUGIN_EXAMPLE=ON
+    - cmake --build build --config Release
+
+Build::Linux:
+  stage: build
+  tags:
+    - linux
+  script:
+    - cd $CI_PROJECT_DIR
+    - cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DIVE_PLUGIN_EXAMPLE=ON
+    - cmake --build build
+
+Format:
+  stage: format
+  tags:
+    - osx
+  needs: []
+  before_script:
+    - brew install clang-format
+  script:
+    - find Source -iname *.h -o -iname *.cpp | xargs clang-format --Werror --dry-run --verbose -style=file
+    - find Example -iname *.h -o -iname *.cpp | xargs clang-format --Werror --dry-run --verbose -style=file
