@@ -132,14 +132,6 @@ PluginWrapper::~PluginWrapper()
     {
         Files::unloadLibrary(mLibraryHandle);
     }
-    if(mDescriptor != nullptr)
-    {
-        if(mDescriptor->identifier != nullptr)
-        {
-            std::free((void*)(mDescriptor->identifier));
-        }
-        std::free((void*)mDescriptor);
-    }
 }
 
 PluginWrapper::InputList PluginWrapper::getInputDescriptors() const

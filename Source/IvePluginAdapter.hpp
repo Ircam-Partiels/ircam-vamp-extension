@@ -27,25 +27,27 @@ namespace PluginAdapter
     IveColorList* create(std::vector<std::uint32_t> const& colorMap);
 
     template <typename DerivedPlugin>
-    IvePluginDescriptor* getDescriptor()
+    IvePluginDescriptor const* getDescriptor()
     {
         static_assert(std::is_base_of_v<Vamp::Plugin, DerivedPlugin>, "DerivedPlugin must inherit from Vamp::Plugin");
         static_assert(std::is_base_of_v<PluginExtension, DerivedPlugin>, "DerivedPlugin must inherit from PluginExtension");
 
-        auto descriptor = std::make_unique<IvePluginDescriptor>();
-        if(descriptor == nullptr)
+        static bool initialized = false;
+        static std::string identifier;
+        static IvePluginDescriptor descriptor;
+        if(initialized)
         {
-            return nullptr;
+            return std::addressof(descriptor);
         }
-
         static auto const plugin = std::make_unique<DerivedPlugin>(48000.0f);
         if(plugin == nullptr)
         {
             return nullptr;
         }
 
-        descriptor->identifier = strdup(static_cast<Vamp::Plugin const*>(plugin.get())->getIdentifier().c_str());
-        descriptor->getInputCount = [](VampPluginHandle handle) -> unsigned int
+        identifier = static_cast<Vamp::Plugin const*>(plugin.get())->getIdentifier();
+        descriptor.identifier = identifier.c_str();
+        descriptor.getInputCount = [](VampPluginHandle handle) -> unsigned int
         {
             auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
             if(plugin == nullptr)
@@ -55,7 +57,7 @@ namespace PluginAdapter
             return static_cast<unsigned int>(plugin->getInputDescriptors().size());
         };
 
-        descriptor->getInputDescriptor = [](VampPluginHandle handle, unsigned int index) -> VampInputDescriptor*
+        descriptor.getInputDescriptor = [](VampPluginHandle handle, unsigned int index) -> VampInputDescriptor*
         {
             auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
             if(plugin == nullptr)
@@ -70,12 +72,12 @@ namespace PluginAdapter
             return create(inputDescriptors.at(static_cast<size_t>(index)));
         };
 
-        descriptor->releaseInputDescriptor = [](VampInputDescriptor* inputDescriptor)
+        descriptor.releaseInputDescriptor = [](VampInputDescriptor* inputDescriptor)
         {
             release(inputDescriptor);
         };
 
-        descriptor->setPreComputingFeatures = [](VampPluginHandle handle, unsigned int numFeatures, VampFeatureList const* features)
+        descriptor.setPreComputingFeatures = [](VampPluginHandle handle, unsigned int numFeatures, VampFeatureList const* features)
         {
             auto* plugin = static_cast<PluginExtension*>(reinterpret_cast<DerivedPlugin*>(handle));
             if(plugin == nullptr)
@@ -85,7 +87,7 @@ namespace PluginAdapter
             plugin->setPreComputingFeatures(convert(numFeatures, features));
         };
 
-        descriptor->getOuputExtraCount = [](VampPluginHandle handle, unsigned int index) -> unsigned int
+        descriptor.getOuputExtraCount = [](VampPluginHandle handle, unsigned int index) -> unsigned int
         {
             auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
             if(plugin == nullptr)
@@ -95,7 +97,7 @@ namespace PluginAdapter
             return static_cast<unsigned int>(plugin->getOutputExtraDescriptors(static_cast<size_t>(index)).size());
         };
 
-        descriptor->getOuputExtraDescriptor = [](VampPluginHandle handle, unsigned int index, unsigned int subindex) -> VampInputDescriptor*
+        descriptor.getOuputExtraDescriptor = [](VampPluginHandle handle, unsigned int index, unsigned int subindex) -> VampInputDescriptor*
         {
             auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
             if(plugin == nullptr)
@@ -110,7 +112,7 @@ namespace PluginAdapter
             return create(outputExtraDescriptors.at(static_cast<size_t>(subindex)));
         };
 
-        descriptor->supportColorMap = [](VampPluginHandle handle, int index) -> unsigned char
+        descriptor.supportColorMap = [](VampPluginHandle handle, int index) -> unsigned char
         {
             auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
             if(plugin == nullptr)
@@ -120,7 +122,7 @@ namespace PluginAdapter
             return static_cast<unsigned char>(plugin->supportColorMap(index));
         };
 
-        descriptor->getColorMap = [](VampPluginHandle handle, int index, VampFeatureList const* features) -> IveColorList*
+        descriptor.getColorMap = [](VampPluginHandle handle, int index, VampFeatureList const* features) -> IveColorList*
         {
             auto* plugin = static_cast<PluginExtension*>(reinterpret_cast<DerivedPlugin*>(handle));
             if(plugin == nullptr || features == nullptr)
@@ -137,12 +139,12 @@ namespace PluginAdapter
             return create(colorMap);
         };
 
-        descriptor->releaseColorMap = [](IveColorList* list)
+        descriptor.releaseColorMap = [](IveColorList* list)
         {
             release(list);
         };
-
-        return descriptor.release();
+        initialized = true;
+        return std::addressof(descriptor);
     }
 } // namespace PluginAdapter
 
