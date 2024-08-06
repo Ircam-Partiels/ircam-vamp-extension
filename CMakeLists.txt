@@ -9,22 +9,23 @@ option(IVE_BUILD_PLUGIN_LIBRARY "Generate the IVE plugin library" ON)
 option(IVE_BUILD_VAMP_PLUGIN_LIBRARY "Generate the Vamp plugin library" ${IVE_BUILD_PLUGIN_LIBRARY})
 
 set(VAMP_SDK_PATH "" CACHE PATH "The path to the Vamp plugin SDK")
+set(VAMP_SDK_TAG "d7ceb7d1d490674c93d334e5378108c4328e9e05" CACHE PATH "The tag of the Vamp plugin SDK")
 if(NOT EXISTS ${VAMP_SDK_PATH})
   include(FetchContent)
   find_package(Git REQUIRED)
   FetchContent_Declare(
     vamp-plugin-sdk
-    GIT_REPOSITORY https://github.com/c4dm/vamp-plugin-sdk.git
-    GIT_TAG        7df85ecf98d9477c1ac5a36f51807062e00d8695
+    GIT_REPOSITORY https://github.com/vamp-plugins/vamp-plugin-sdk.git
+    GIT_TAG        ${VAMP_SDK_TAG}
+    CONFIGURE_COMMAND ""
+    PATCH_COMMAND  ${GIT_EXECUTABLE} reset --hard && ${GIT_EXECUTABLE} clean -fxd && ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_SOURCE_DIR}/Patchs/Add-IVE-support.patch
+    BUILD_COMMAND  ""
+    INSTALL_COMMAND ""
+    UPDATE_DISCONNECTED TRUE
     EXCLUDE_FROM_ALL
   )
   FetchContent_MakeAvailable(vamp-plugin-sdk)
   set(VAMP_SDK_PATH ${vamp-plugin-sdk_SOURCE_DIR})
-
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} apply ${CMAKE_CURRENT_SOURCE_DIR}/Patchs/Add-IVE-support.patch
-    WORKING_DIRECTORY ${VAMP_SDK_PATH}
-  )
 
   message(STATUS "Vamp Plugin SDK cloned in " ${VAMP_SDK_PATH})
 endif()
