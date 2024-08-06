@@ -1,0 +1,59 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  ClangFormat:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check format
+      uses: jidicula/clang-format-action@v4.13.0
+      with:
+        clang-format-version: '18'
+        check-path: '.'
+  Ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        build_type: [Debug, Release]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: seanmiddleditch/gha-setup-ninja@master
+    - name: Configure
+      run: cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DIVE_PLUGIN_EXAMPLE=ON
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+  Windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        build_type: [Debug, Release]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Configure
+      run: cmake -B ${{github.workspace}}/build -G "Visual Studio 17 2022" -A x64 -DIVE_PLUGIN_EXAMPLE=ON 
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{ matrix.build_type }}
+  MacOS:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        build_type: [Debug, Release]
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Prepare
+      run: brew install xcbeautify
+    - name: Configure
+      run: cmake -B ${{github.workspace}}/build -G "Xcode" -DIVE_PLUGIN_EXAMPLE=ON 
+    - name: Build
+      run: set -o pipefail && cmake --build ${{github.workspace}}/build --config ${{ matrix.build_type }} | xcbeautify --renderer github-actions
