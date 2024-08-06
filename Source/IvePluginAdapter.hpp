@@ -1,8 +1,14 @@
 #pragma once
 
+#include <cassert>
+#include <cstdint>
 #include <cstring>
+#include <limits>
 #include <memory>
+#include <string>
 #include <type_traits>
+#include <vector>
+
 #include <vamp-sdk/Plugin.h>
 
 #include "ive.h"

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cassert>
-
 class PluginExtension
 {
 public:
