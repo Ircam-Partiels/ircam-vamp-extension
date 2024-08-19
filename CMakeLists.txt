@@ -25,7 +25,7 @@ if(NOT EXISTS ${VAMP_SDK_PATH})
     EXCLUDE_FROM_ALL
   )
   FetchContent_MakeAvailable(vamp-plugin-sdk)
-  set(VAMP_SDK_PATH ${vamp-plugin-sdk_SOURCE_DIR})
+  set(VAMP_SDK_PATH ${vamp-plugin-sdk_SOURCE_DIR} CACHE PATH "The path to the Vamp plugin SDK" FORCE)
 
   message(STATUS "Vamp Plugin SDK cloned in " ${VAMP_SDK_PATH})
 endif()
