@@ -35,7 +35,7 @@ public:
     OutputExtraList getOutputExtraDescriptors(size_t outputDescriptorIndex) const override;
 
     bool supportColorMap(int index) const override;
-    std::vector<Color> getColorMap(int index, Vamp::Plugin::Feature const& feature) override;
+    std::vector<Color> getColorMap(int index, Vamp::Plugin::Feature const& feature, std::tuple<float, float> const& thresholds) override;
 
 private:
     bool isVersionSupported(int major, int minor, int patch) const;

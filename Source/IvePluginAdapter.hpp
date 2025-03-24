@@ -128,7 +128,7 @@ namespace PluginAdapter
             return static_cast<unsigned char>(plugin->supportColorMap(index));
         };
 
-        descriptor.getColorMap = [](VampPluginHandle handle, int index, VampFeatureList const* features) -> IveColorList*
+        descriptor.getColorMap = [](VampPluginHandle handle, int index, VampFeatureList const* features, float const minThreshold, float const maxThreshold) -> IveColorList*
         {
             auto* plugin = static_cast<PluginExtension*>(reinterpret_cast<DerivedPlugin*>(handle));
             if(plugin == nullptr || features == nullptr)
@@ -141,7 +141,7 @@ namespace PluginAdapter
             {
                 return nullptr;
             }
-            auto const colorMap = plugin->getColorMap(index, it->second.at(0));
+            auto const colorMap = plugin->getColorMap(index, it->second.at(0), std::make_tuple(minThreshold, maxThreshold));
             return create(colorMap);
         };
 

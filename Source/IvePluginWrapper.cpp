@@ -248,9 +248,9 @@ bool PluginWrapper::supportColorMap(int index) const
     return mDescriptor->supportColorMap(mPluginHandle, index);
 }
 
-std::vector<PluginWrapper::Color> PluginWrapper::getColorMap(int index, Vamp::Plugin::Feature const& feature)
+std::vector<PluginWrapper::Color> PluginWrapper::getColorMap(int index, Vamp::Plugin::Feature const& feature, std::tuple<float, float> const& thresholds)
 {
-    if(!isVersionSupported(0, 0, 3))
+    if(!isVersionSupported(0, 0, 4))
     {
         return {};
     }
@@ -261,7 +261,7 @@ std::vector<PluginWrapper::Color> PluginWrapper::getColorMap(int index, Vamp::Pl
     {
         return {};
     }
-    auto* colorList = mDescriptor->getColorMap(mPluginHandle, index, mColorFeatures.getData());
+    auto* colorList = mDescriptor->getColorMap(mPluginHandle, index, mColorFeatures.getData(), std::get<0>(thresholds), std::get<1>(thresholds));
     if(colorList == nullptr || colorList->colors == nullptr || colorList->colorCount == 0)
     {
         return {};

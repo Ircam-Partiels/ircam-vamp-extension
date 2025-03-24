@@ -96,7 +96,7 @@ namespace IvePluginExample
 
         // Ive::PluginExtension
         bool supportColorMap(int index) const override;
-        std::vector<Color> getColorMap(int index, Vamp::Plugin::Feature const& feature) override;
+        std::vector<Color> getColorMap(int index, Vamp::Plugin::Feature const& feature, std::tuple<float, float> const& thresholds) override;
 
     private:
         FeatureSet mFeatureSet;

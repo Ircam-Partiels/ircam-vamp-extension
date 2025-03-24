@@ -319,7 +319,7 @@ bool IvePluginExample::RainbowMatrix::supportColorMap(int index) const
     return index == 0;
 }
 
-std::vector<IvePluginExample::RainbowMatrix::Color> IvePluginExample::RainbowMatrix::getColorMap(int index, Vamp::Plugin::Feature const& feature)
+std::vector<IvePluginExample::RainbowMatrix::Color> IvePluginExample::RainbowMatrix::getColorMap(int index, Vamp::Plugin::Feature const& feature, std::tuple<float, float> const& thresholds)
 {
     if(index != 0)
     {
@@ -356,8 +356,16 @@ std::vector<IvePluginExample::RainbowMatrix::Color> IvePluginExample::RainbowMat
 
     std::vector<Color> colors;
     colors.reserve(feature.values.size());
-    for(auto const& value : feature.values)
+    for(auto value : feature.values)
     {
+        if(value > std::get<0>(thresholds))
+        {
+            value = std::get<0>(thresholds);
+        }
+        else if(value < std::get<1>(thresholds))
+        {
+            value = std::get<1>(thresholds);
+        }
         colors.push_back(hToColor(value));
     }
     return colors;

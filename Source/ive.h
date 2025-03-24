@@ -63,8 +63,9 @@ typedef struct _IvePluginDescriptor
     VampOutputExtraDescriptor* (*getOuputExtraDescriptor)(VampPluginHandle handle, unsigned int index, unsigned int subindex);
 
     // 0.0.3
+    // 0.0.4 (min/max thresholds)
     unsigned char (*supportColorMap)(VampPluginHandle handle, int index);
-    IveColorList* (*getColorMap)(VampPluginHandle, int index, VampFeatureList const* features);
+    IveColorList* (*getColorMap)(VampPluginHandle, int index, VampFeatureList const* features, float const minThreshold, float const maxThreshold);
     void (*releaseColorMap)(IveColorList* map);
 } IvePluginDescriptor;
 

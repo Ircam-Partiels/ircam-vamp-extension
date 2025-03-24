@@ -63,7 +63,7 @@ public:
     using Color = std::uint32_t;
 
     //! @brief Gets color map for a feature
-    virtual std::vector<Color> getColorMap([[maybe_unused]] int index, [[maybe_unused]] Vamp::Plugin::Feature const& feature)
+    virtual std::vector<Color> getColorMap([[maybe_unused]] int index, [[maybe_unused]] Vamp::Plugin::Feature const& feature, [[maybe_unused]] std::tuple<float, float> const& thresholds)
     {
         assert(false);
         return {};
