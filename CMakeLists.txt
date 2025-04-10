@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(IrcamVampExtension VERSION 0.0.3 LANGUAGES C CXX)
+project(IrcamVampExtension VERSION 0.0.4 LANGUAGES C CXX)
 
 option(IVE_PLUGIN_EXAMPLE "Generate the IVE pluhin example" OFF)
 option(IVE_BUILD_HOST_LIBRARY "Generate the IVE host library" ON)
