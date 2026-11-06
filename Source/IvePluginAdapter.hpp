@@ -29,8 +29,6 @@ namespace PluginAdapter
     VampInputDescriptor* create(PluginExtension::InputDescriptor const& pluginInputDescriptor);
     VampOutputExtraDescriptor* create(PluginExtension::OutputExtraDescriptor const& pluginOutputExtraDescriptor);
     Vamp::Plugin::FeatureSet convert(unsigned int numFeatures, VampFeatureList const* features);
-    void release(IveColorList* colorList);
-    IveColorList* create(std::vector<std::uint32_t> const& colorMap);
 
     template <typename DerivedPlugin>
     IvePluginDescriptor const* getDescriptor()
@@ -118,36 +116,19 @@ namespace PluginAdapter
             return create(outputExtraDescriptors.at(static_cast<size_t>(subindex)));
         };
 
-        descriptor.supportColorMap = [](VampPluginHandle handle, int index) -> unsigned char
+        // Slots of the color map support removed in 0.0.5
+        descriptor.reserved0 = []([[maybe_unused]] VampPluginHandle handle, [[maybe_unused]] int index) -> unsigned char
         {
-            auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
-            if(plugin == nullptr)
-            {
-                return 0u;
-            }
-            return static_cast<unsigned char>(plugin->supportColorMap(index));
+            return 0u;
         };
 
-        descriptor.getColorMap = [](VampPluginHandle handle, int index, VampFeatureList const* features, float const minThreshold, float const maxThreshold) -> IveColorList*
+        descriptor.reserved1 = []([[maybe_unused]] VampPluginHandle handle, [[maybe_unused]] int index, [[maybe_unused]] VampFeatureList const* features, [[maybe_unused]] float minThreshold, [[maybe_unused]] float maxThreshold) -> void*
         {
-            auto* plugin = static_cast<PluginExtension*>(reinterpret_cast<DerivedPlugin*>(handle));
-            if(plugin == nullptr || features == nullptr)
-            {
-                return nullptr;
-            }
-            auto const fs = convert(1u, features);
-            auto const it = fs.find(0);
-            if(it == fs.cend() || it->second.empty())
-            {
-                return nullptr;
-            }
-            auto const colorMap = plugin->getColorMap(index, it->second.at(0), std::make_tuple(minThreshold, maxThreshold));
-            return create(colorMap);
+            return nullptr;
         };
 
-        descriptor.releaseColorMap = [](IveColorList* list)
+        descriptor.reserved2 = []([[maybe_unused]] void* data)
         {
-            release(list);
         };
         initialized = true;
         return std::addressof(descriptor);

@@ -214,163 +214,6 @@ Vamp::Plugin::FeatureSet IvePluginExample::RandomPoint::getRemainingFeatures()
     return {};
 }
 
-IvePluginExample::RainbowMatrix::RainbowMatrix(float sampleRate)
-: Vamp::Plugin(sampleRate)
-{
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
-}
-
-std::string IvePluginExample::RainbowMatrix::getMaker() const
-{
-    return "IVE";
-}
-
-int IvePluginExample::RainbowMatrix::getPluginVersion() const
-{
-    return 1;
-}
-
-std::string IvePluginExample::RainbowMatrix::getCopyright() const
-{
-    return "IVE Plugin.";
-}
-
-bool IvePluginExample::RainbowMatrix::initialise(size_t, size_t, size_t)
-{
-    return true;
-}
-
-Vamp::Plugin::InputDomain IvePluginExample::RainbowMatrix::getInputDomain() const
-{
-    return TimeDomain;
-}
-
-std::string IvePluginExample::RainbowMatrix::getIdentifier() const
-{
-    return "iverainbowmatrix";
-}
-
-std::string IvePluginExample::RainbowMatrix::getName() const
-{
-    return "Raindow Matrix";
-}
-
-std::string IvePluginExample::RainbowMatrix::getDescription() const
-{
-    return "Generates a raindow.";
-}
-
-size_t IvePluginExample::RainbowMatrix::getPreferredBlockSize() const
-{
-    return 256;
-}
-
-Vamp::Plugin::OutputList IvePluginExample::RainbowMatrix::getOutputDescriptors() const
-{
-    OutputList list;
-    {
-        OutputDescriptor d;
-        d.identifier = "hue";
-        d.name = "Hue";
-        d.description = "A hue of cell";
-        d.unit = "";
-        d.hasFixedBinCount = true;
-        d.binCount = gSize;
-        d.hasKnownExtents = true;
-        d.minValue = 0.0;
-        d.maxValue = 1.0;
-        d.isQuantized = false;
-        d.sampleType = OutputDescriptor::SampleType::OneSamplePerStep;
-        d.hasDuration = false;
-        list.push_back(std::move(d));
-    }
-    return list;
-}
-
-void IvePluginExample::RainbowMatrix::reset()
-{
-}
-
-Vamp::Plugin::FeatureSet IvePluginExample::RainbowMatrix::process(const float* const*, Vamp::RealTime timeStamp)
-{
-    Vamp::Plugin::FeatureSet set;
-    set[0].push_back({});
-    auto& values = set[0][0].values;
-    values.resize(gSize);
-    static auto constexpr maxSize = gSize * gSize;
-    for(auto& value : values)
-    {
-        value = static_cast<float>(mPosition++) / static_cast<float>(maxSize);
-        if(mPosition >= maxSize)
-        {
-            mPosition = 0;
-        }
-    }
-    return set;
-}
-
-Vamp::Plugin::FeatureSet IvePluginExample::RainbowMatrix::getRemainingFeatures()
-{
-    return {};
-}
-
-bool IvePluginExample::RainbowMatrix::supportColorMap(int index) const
-{
-    return index == 0;
-}
-
-std::vector<IvePluginExample::RainbowMatrix::Color> IvePluginExample::RainbowMatrix::getColorMap(int index, Vamp::Plugin::Feature const& feature, std::tuple<float, float> const& thresholds)
-{
-    if(index != 0)
-    {
-        return {};
-    }
-
-    auto const hToColor = [](float h) -> std::uint32_t
-    {
-        auto const hueToRgb = [](float t)
-        {
-            t = t < 0.0f ? t + 1.0f : (t > 1.0f ? t - 1.0f : t);
-            if(t < 1.0f / 6.0f)
-            {
-                return 6.0f * t;
-            }
-            if(t < 1.0f / 2.0f)
-            {
-                return 1.0f;
-            }
-            if(t < 2.0f / 3.0f)
-            {
-                return (2.0f / 3.0f - t) * 6.0f;
-            }
-            return 0.0f;
-        };
-
-        static constexpr std::uint32_t alpha = 255;
-        static constexpr float oneThird = 1.0f / 3.0f;
-        auto const red = static_cast<std::uint32_t>(std::round(hueToRgb(h + oneThird) * 255.0f));
-        auto const green = static_cast<std::uint32_t>(std::round(hueToRgb(h) * 255.0f));
-        auto const blue = static_cast<std::uint32_t>(std::round(hueToRgb(h - oneThird) * 255.0f));
-        return ((alpha << 24) | (red << 16) | (green << 8) | blue);
-    };
-
-    std::vector<Color> colors;
-    colors.reserve(feature.values.size());
-    for(auto value : feature.values)
-    {
-        if(value > std::get<0>(thresholds))
-        {
-            value = std::get<0>(thresholds);
-        }
-        else if(value < std::get<1>(thresholds))
-        {
-            value = std::get<1>(thresholds);
-        }
-        colors.push_back(hToColor(value));
-    }
-    return colors;
-}
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -391,11 +234,6 @@ extern "C"
             case 1:
             {
                 static Vamp::PluginAdapter<IvePluginExample::RandomPoint> adaptater;
-                return adaptater.getDescriptor();
-            }
-            case 2:
-            {
-                static Vamp::PluginAdapter<IvePluginExample::RainbowMatrix> adaptater;
                 return adaptater.getDescriptor();
             }
             default:
@@ -420,10 +258,6 @@ extern "C"
             case 1:
             {
                 return Ive::PluginAdapter::getDescriptor<IvePluginExample::RandomPoint>();
-            }
-            case 2:
-            {
-                return Ive::PluginAdapter::getDescriptor<IvePluginExample::RainbowMatrix>();
             }
             default:
             {

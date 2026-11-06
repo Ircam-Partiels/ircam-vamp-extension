@@ -38,12 +38,6 @@ IVE_EXTERN_CPP_BEGIN
 typedef VampOutputDescriptor VampInputDescriptor;
 typedef VampOutputDescriptor VampOutputExtraDescriptor;
 
-typedef struct _IveColorList
-{
-    unsigned int colorCount;
-    uint32_t* colors;
-} IveColorList;
-
 typedef struct _IvePluginDescriptor
 {
     int const api_version_major = IVE_VERSION_MAJOR;
@@ -62,11 +56,12 @@ typedef struct _IvePluginDescriptor
     unsigned int (*getOuputExtraCount)(VampPluginHandle handle, unsigned int index);
     VampOutputExtraDescriptor* (*getOuputExtraDescriptor)(VampPluginHandle handle, unsigned int index, unsigned int subindex);
 
-    // 0.0.3
-    // 0.0.4 (min/max thresholds)
-    unsigned char (*supportColorMap)(VampPluginHandle handle, int index);
-    IveColorList* (*getColorMap)(VampPluginHandle, int index, VampFeatureList const* features, float const minThreshold, float const maxThreshold);
-    void (*releaseColorMap)(IveColorList* map);
+    // 0.0.3 & 0.0.4 (color map support, removed in 0.0.5)
+    // These slots preserve the descriptor layout for the hosts that still use them.
+    // Plugins must set them to functions that disable the feature and hosts must not use them.
+    unsigned char (*reserved0)(VampPluginHandle handle, int index);
+    void* (*reserved1)(VampPluginHandle handle, int index, VampFeatureList const* features, float minThreshold, float maxThreshold);
+    void (*reserved2)(void* data);
 } IvePluginDescriptor;
 
 IVE_EXTERN IvePluginDescriptor const* iveGetPluginDescriptor(unsigned int hostApiVersion, unsigned int index);

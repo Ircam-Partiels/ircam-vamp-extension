@@ -67,40 +67,4 @@ namespace IvePluginExample
         FeatureSet process(const float* const* inputBuffers, Vamp::RealTime timestamp) override;
         FeatureSet getRemainingFeatures() override;
     };
-
-    class RainbowMatrix
-    : public Vamp::Plugin
-    , public Ive::PluginExtension
-    {
-    public:
-        RainbowMatrix(float sampleRate);
-        ~RainbowMatrix() override = default;
-
-        bool initialise(size_t channels, size_t stepSize, size_t blockSize) override;
-
-        std::string getMaker() const override;
-        int getPluginVersion() const override;
-        std::string getCopyright() const override;
-
-        InputDomain getInputDomain() const override;
-        std::string getIdentifier() const override;
-        std::string getName() const override;
-        std::string getDescription() const override;
-
-        size_t getPreferredBlockSize() const override;
-        OutputList getOutputDescriptors() const override;
-
-        void reset() override;
-        FeatureSet process(const float* const* inputBuffers, Vamp::RealTime timestamp) override;
-        FeatureSet getRemainingFeatures() override;
-
-        // Ive::PluginExtension
-        bool supportColorMap(int index) const override;
-        std::vector<Color> getColorMap(int index, Vamp::Plugin::Feature const& feature, std::tuple<float, float> const& thresholds) override;
-
-    private:
-        FeatureSet mFeatureSet;
-        size_t mPosition = 0;
-        static size_t constexpr gSize = 24;
-    };
 } // namespace IvePluginExample

@@ -3,10 +3,9 @@
 
 The Ircam Vamp Extension (IVE) provides an interface for 
 - receiving features before analysis, 
-- defining additional features on output,
-- returning color maps based on the results. 
+- defining additional features on output.
 
-These features are implemented in the CopyMarker, RandomPoint and RainbowMatrix example plug-ins respectively.
+These features are implemented in the CopyMarker and RandomPoint example plug-ins respectively.
 
 ## Compilation
 
