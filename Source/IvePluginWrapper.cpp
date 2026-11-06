@@ -1,4 +1,5 @@
 #include "IvePluginWrapper.hpp"
+#include <algorithm>
 #include <cassert>
 #include <src/vamp-hostsdk/Files.h>
 
@@ -237,6 +238,53 @@ PluginWrapper::OutputExtraList PluginWrapper::getOutputExtraDescriptors(size_t o
     }
 
     return list;
+}
+
+std::optional<PluginWrapper::VoiceDescriptor> PluginWrapper::getOutputVoiceDescriptor(size_t outputDescriptorIndex) const
+{
+    if(!isVersionSupported(0, 0, 6))
+    {
+        return {};
+    }
+    auto* voiceDescriptor = mDescriptor->getOutputVoiceDescriptor(mPluginHandle, static_cast<unsigned int>(outputDescriptorIndex));
+    if(voiceDescriptor == nullptr)
+    {
+        return {};
+    }
+    auto const to_string = [](char const* str)
+    {
+        return str != nullptr ? std::string(str) : std::string();
+    };
+    VoiceDescriptor d;
+    d.identifier = to_string(voiceDescriptor->identifier);
+    d.name = to_string(voiceDescriptor->name);
+    d.description = to_string(voiceDescriptor->description);
+    d.unit = to_string(voiceDescriptor->unit);
+    d.minValue = voiceDescriptor->minValue;
+    d.maxValue = voiceDescriptor->maxValue;
+    d.defaultValue = voiceDescriptor->defaultValue;
+    d.isQuantized = voiceDescriptor->isQuantized != 0;
+    d.quantizeStep = voiceDescriptor->quantizeStep;
+    mDescriptor->releaseOutputVoiceDescriptor(voiceDescriptor);
+    return d;
+}
+
+size_t PluginWrapper::getOutputVoiceCount(size_t outputDescriptorIndex) const
+{
+    if(!isVersionSupported(0, 0, 6))
+    {
+        return 1;
+    }
+    return std::max(static_cast<size_t>(mDescriptor->getOutputVoiceCount(mPluginHandle, static_cast<unsigned int>(outputDescriptorIndex))), static_cast<size_t>(1));
+}
+
+void PluginWrapper::setOutputVoiceCount(std::string const& identifier, size_t count)
+{
+    if(!isVersionSupported(0, 0, 6))
+    {
+        return;
+    }
+    mDescriptor->setOutputVoiceCount(mPluginHandle, identifier.c_str(), static_cast<unsigned int>(count));
 }
 
 bool PluginWrapper::isVersionSupported(int major, int minor, int patch) const

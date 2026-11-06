@@ -3,6 +3,7 @@
 #include <cassert>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <type_traits>
 #include <vamp-hostsdk/Plugin.h>
 #include <vamp-hostsdk/PluginHostAdapter.h>
@@ -33,6 +34,9 @@ public:
     void setPreComputingFeatures(Vamp::Plugin::FeatureSet const& fs) override;
 
     OutputExtraList getOutputExtraDescriptors(size_t outputDescriptorIndex) const override;
+    std::optional<VoiceDescriptor> getOutputVoiceDescriptor(size_t outputDescriptorIndex) const override;
+    size_t getOutputVoiceCount(size_t outputDescriptorIndex) const override;
+    void setOutputVoiceCount(std::string const& identifier, size_t count) override;
 
 private:
     bool isVersionSupported(int major, int minor, int patch) const;

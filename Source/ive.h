@@ -62,6 +62,23 @@ typedef struct _IvePluginDescriptor
     unsigned char (*reserved0)(VampPluginHandle handle, int index);
     void* (*reserved1)(VampPluginHandle handle, int index, VampFeatureList const* features, float minThreshold, float maxThreshold);
     void (*reserved2)(void* data);
+
+    // 0.0.6
+    // The voices of an output are consecutive outputs, starting at the output index, that share the same nature (e.g.
+    // the pitches of a polyphonic analysis). The features of the voices are the features lists of the outputs in the
+    // feature set. The number of voices is controlled by the host (like a parameter but independently of the parameters,
+    // the programs and the presets) and the output descriptors depend on it. The identifier of the first voice must not
+    // depend on the number of voices.
+    // Gets the current number of voices of the output (1 for a conventional output).
+    unsigned int (*getOutputVoiceCount)(VampPluginHandle handle, unsigned int index);
+    // Gets the descriptor of the number of voices of the output (name, range, default value...) or NULL if the output
+    // has no voices. The value names of the descriptor are not used.
+    VampParameterDescriptor* (*getOutputVoiceDescriptor)(VampPluginHandle handle, unsigned int index);
+    void (*releaseOutputVoiceDescriptor)(VampParameterDescriptor* descriptor);
+    // Sets the number of voices of the output whose first voice has the identifier. The number of voices must be set
+    // before retrieving the output descriptors from the instance of the plugin (because the Vamp plugin adapter caches
+    // them until a parameter or a program changes) and before the initialisation of the plugin.
+    void (*setOutputVoiceCount)(VampPluginHandle handle, char const* identifier, unsigned int count);
 } IvePluginDescriptor;
 
 IVE_EXTERN IvePluginDescriptor const* iveGetPluginDescriptor(unsigned int hostApiVersion, unsigned int index);

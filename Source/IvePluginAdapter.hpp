@@ -1,10 +1,12 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -28,6 +30,8 @@ namespace PluginAdapter
     void release(VampInputDescriptor* inputDescriptor);
     VampInputDescriptor* create(PluginExtension::InputDescriptor const& pluginInputDescriptor);
     VampOutputExtraDescriptor* create(PluginExtension::OutputExtraDescriptor const& pluginOutputExtraDescriptor);
+    void release(VampParameterDescriptor* voiceDescriptor);
+    VampParameterDescriptor* create(PluginExtension::VoiceDescriptor const& pluginVoiceDescriptor);
     Vamp::Plugin::FeatureSet convert(unsigned int numFeatures, VampFeatureList const* features);
 
     template <typename DerivedPlugin>
@@ -129,6 +133,46 @@ namespace PluginAdapter
 
         descriptor.reserved2 = []([[maybe_unused]] void* data)
         {
+        };
+
+        descriptor.getOutputVoiceCount = [](VampPluginHandle handle, unsigned int index) -> unsigned int
+        {
+            auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
+            if(plugin == nullptr)
+            {
+                return 1u;
+            }
+            return static_cast<unsigned int>(std::max(plugin->getOutputVoiceCount(static_cast<size_t>(index)), static_cast<size_t>(1)));
+        };
+
+        descriptor.getOutputVoiceDescriptor = [](VampPluginHandle handle, unsigned int index) -> VampParameterDescriptor*
+        {
+            auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
+            if(plugin == nullptr)
+            {
+                return nullptr;
+            }
+            auto const voiceDescriptor = plugin->getOutputVoiceDescriptor(static_cast<size_t>(index));
+            if(!voiceDescriptor.has_value())
+            {
+                return nullptr;
+            }
+            return create(voiceDescriptor.value());
+        };
+
+        descriptor.releaseOutputVoiceDescriptor = [](VampParameterDescriptor* voiceDescriptor)
+        {
+            release(voiceDescriptor);
+        };
+
+        descriptor.setOutputVoiceCount = [](VampPluginHandle handle, char const* identifier, unsigned int count)
+        {
+            auto* plugin = static_cast<PluginExtension*>(reinterpret_cast<DerivedPlugin*>(handle));
+            if(plugin == nullptr || identifier == nullptr)
+            {
+                return;
+            }
+            plugin->setOutputVoiceCount(std::string(identifier), static_cast<size_t>(count));
         };
         initialized = true;
         return std::addressof(descriptor);

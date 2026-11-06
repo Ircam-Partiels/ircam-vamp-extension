@@ -2,6 +2,7 @@
 #include <IvePluginAdapter.hpp>
 #include <vamp-sdk/PluginAdapter.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <ctime>
@@ -214,6 +215,168 @@ Vamp::Plugin::FeatureSet IvePluginExample::RandomPoint::getRemainingFeatures()
     return {};
 }
 
+IvePluginExample::MultiVoices::MultiVoices(float sampleRate)
+: Vamp::Plugin(sampleRate)
+{
+}
+
+std::string IvePluginExample::MultiVoices::getMaker() const
+{
+    return "IVE";
+}
+
+int IvePluginExample::MultiVoices::getPluginVersion() const
+{
+    return 1;
+}
+
+std::string IvePluginExample::MultiVoices::getCopyright() const
+{
+    return "IVE Plugin.";
+}
+
+bool IvePluginExample::MultiVoices::initialise(size_t, size_t, size_t)
+{
+    reset();
+    return true;
+}
+
+Vamp::Plugin::InputDomain IvePluginExample::MultiVoices::getInputDomain() const
+{
+    return TimeDomain;
+}
+
+std::string IvePluginExample::MultiVoices::getIdentifier() const
+{
+    return "ivemultivoices";
+}
+
+std::string IvePluginExample::MultiVoices::getName() const
+{
+    return "Multi Voices";
+}
+
+std::string IvePluginExample::MultiVoices::getDescription() const
+{
+    return "Generates deterministic points on several voices that start and stop at different times.";
+}
+
+size_t IvePluginExample::MultiVoices::getPreferredBlockSize() const
+{
+    return 256;
+}
+
+Vamp::Plugin::OutputList IvePluginExample::MultiVoices::getOutputDescriptors() const
+{
+    OutputList list;
+    for(size_t voice = 0; voice < mNumVoices; ++voice)
+    {
+        OutputDescriptor d;
+        d.identifier = "voice" + std::to_string(voice + 1);
+        d.name = "Voice " + std::to_string(voice + 1);
+        d.description = "The points of the voice " + std::to_string(voice + 1);
+        d.unit = "";
+        d.hasFixedBinCount = true;
+        d.binCount = 1;
+        d.hasKnownExtents = true;
+        d.minValue = 0.0f;
+        d.maxValue = static_cast<float>(gMaxVoices + 1);
+        d.isQuantized = false;
+        d.sampleType = OutputDescriptor::SampleType::VariableSampleRate;
+        d.sampleRate = 0.0f;
+        d.hasDuration = false;
+        list.push_back(std::move(d));
+    }
+    // A conventional output after the voices (its index depends on the number of voices)
+    {
+        OutputDescriptor d;
+        d.identifier = "active";
+        d.name = "Active Voices";
+        d.description = "The number of active voices";
+        d.unit = "";
+        d.hasFixedBinCount = true;
+        d.binCount = 1;
+        d.hasKnownExtents = true;
+        d.minValue = 0.0f;
+        d.maxValue = static_cast<float>(gMaxVoices);
+        d.isQuantized = true;
+        d.quantizeStep = 1.0f;
+        d.sampleType = OutputDescriptor::SampleType::OneSamplePerStep;
+        d.hasDuration = false;
+        list.push_back(std::move(d));
+    }
+    return list;
+}
+
+std::optional<IvePluginExample::MultiVoices::VoiceDescriptor> IvePluginExample::MultiVoices::getOutputVoiceDescriptor(size_t outputDescriptorIndex) const
+{
+    if(outputDescriptorIndex != 0)
+    {
+        return {};
+    }
+    VoiceDescriptor d;
+    d.identifier = "voices";
+    d.name = "Voices";
+    d.description = "The number of voices";
+    d.unit = "";
+    d.minValue = 1.0f;
+    d.maxValue = static_cast<float>(gMaxVoices);
+    d.defaultValue = 3.0f;
+    d.isQuantized = true;
+    d.quantizeStep = 1.0f;
+    return d;
+}
+
+size_t IvePluginExample::MultiVoices::getOutputVoiceCount(size_t outputDescriptorIndex) const
+{
+    return outputDescriptorIndex == 0 ? mNumVoices : 1;
+}
+
+void IvePluginExample::MultiVoices::setOutputVoiceCount(std::string const& identifier, size_t count)
+{
+    if(identifier == "voice1")
+    {
+        mNumVoices = std::clamp(count, static_cast<size_t>(1), gMaxVoices);
+    }
+}
+
+void IvePluginExample::MultiVoices::reset()
+{
+    mBlockIndex = 0;
+}
+
+Vamp::Plugin::FeatureSet IvePluginExample::MultiVoices::process(const float* const*, Vamp::RealTime timeStamp)
+{
+    // Each voice is active two thirds of the time with a different phase, so the voices start and stop at different
+    // times, and the value of a voice oscillates around its number
+    static auto constexpr pi = 3.14159265358979323846;
+    Vamp::Plugin::FeatureSet set;
+    auto numActiveVoices = 0;
+    for(size_t voice = 0; voice < mNumVoices; ++voice)
+    {
+        if((mBlockIndex / 16 + voice) % 3 != 0)
+        {
+            ++numActiveVoices;
+            Feature feature;
+            feature.hasTimestamp = true;
+            feature.timestamp = timeStamp;
+            auto const phase = static_cast<double>(mBlockIndex) / 32.0 * 2.0 * pi;
+            feature.values.push_back(static_cast<float>(static_cast<double>(voice + 1) + 0.25 * std::sin(phase)));
+            set[static_cast<int>(voice)].push_back(std::move(feature));
+        }
+    }
+    Feature active;
+    active.values.push_back(static_cast<float>(numActiveVoices));
+    set[static_cast<int>(mNumVoices)].push_back(std::move(active));
+    ++mBlockIndex;
+    return set;
+}
+
+Vamp::Plugin::FeatureSet IvePluginExample::MultiVoices::getRemainingFeatures()
+{
+    return {};
+}
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -234,6 +397,11 @@ extern "C"
             case 1:
             {
                 static Vamp::PluginAdapter<IvePluginExample::RandomPoint> adaptater;
+                return adaptater.getDescriptor();
+            }
+            case 2:
+            {
+                static Vamp::PluginAdapter<IvePluginExample::MultiVoices> adaptater;
                 return adaptater.getDescriptor();
             }
             default:
@@ -258,6 +426,10 @@ extern "C"
             case 1:
             {
                 return Ive::PluginAdapter::getDescriptor<IvePluginExample::RandomPoint>();
+            }
+            case 2:
+            {
+                return Ive::PluginAdapter::getDescriptor<IvePluginExample::MultiVoices>();
             }
             default:
             {

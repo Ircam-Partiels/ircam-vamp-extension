@@ -119,6 +119,46 @@ VampOutputExtraDescriptor* PluginAdapter::create(PluginExtension::OutputExtraDes
     return descriptor.release();
 }
 
+void PluginAdapter::release(VampParameterDescriptor* voiceDescriptor)
+{
+    auto descriptor = std::unique_ptr<VampParameterDescriptor>(voiceDescriptor);
+    if(descriptor == nullptr)
+    {
+        return;
+    }
+    auto const free_string = [](char const* str)
+    {
+        if(str != nullptr)
+        {
+            std::free(static_cast<void*>(const_cast<char*>(str)));
+        }
+    };
+    free_string(descriptor->identifier);
+    free_string(descriptor->name);
+    free_string(descriptor->description);
+    free_string(descriptor->unit);
+}
+
+VampParameterDescriptor* PluginAdapter::create(PluginExtension::VoiceDescriptor const& pluginVoiceDescriptor)
+{
+    auto descriptor = std::make_unique<VampParameterDescriptor>();
+    if(descriptor == nullptr)
+    {
+        return nullptr;
+    }
+    descriptor->identifier = strdup(pluginVoiceDescriptor.identifier.c_str());
+    descriptor->name = strdup(pluginVoiceDescriptor.name.c_str());
+    descriptor->description = strdup(pluginVoiceDescriptor.description.c_str());
+    descriptor->unit = strdup(pluginVoiceDescriptor.unit.c_str());
+    descriptor->minValue = pluginVoiceDescriptor.minValue;
+    descriptor->maxValue = pluginVoiceDescriptor.maxValue;
+    descriptor->defaultValue = pluginVoiceDescriptor.defaultValue;
+    descriptor->isQuantized = pluginVoiceDescriptor.isQuantized ? 1 : 0;
+    descriptor->quantizeStep = pluginVoiceDescriptor.quantizeStep;
+    descriptor->valueNames = NULL;
+    return descriptor.release();
+}
+
 Vamp::Plugin::FeatureSet PluginAdapter::convert(unsigned int numFeatures, VampFeatureList const* features)
 {
     if(features == nullptr)

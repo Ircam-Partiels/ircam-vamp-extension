@@ -67,4 +67,41 @@ namespace IvePluginExample
         FeatureSet process(const float* const* inputBuffers, Vamp::RealTime timestamp) override;
         FeatureSet getRemainingFeatures() override;
     };
+
+    class MultiVoices
+    : public Vamp::Plugin
+    , public Ive::PluginExtension
+    {
+    public:
+        MultiVoices(float sampleRate);
+        ~MultiVoices() override = default;
+
+        bool initialise(size_t channels, size_t stepSize, size_t blockSize) override;
+
+        std::string getMaker() const override;
+        int getPluginVersion() const override;
+        std::string getCopyright() const override;
+
+        InputDomain getInputDomain() const override;
+        std::string getIdentifier() const override;
+        std::string getName() const override;
+        std::string getDescription() const override;
+
+        size_t getPreferredBlockSize() const override;
+        OutputList getOutputDescriptors() const override;
+
+        // Ive::PluginExtension
+        std::optional<VoiceDescriptor> getOutputVoiceDescriptor(size_t outputDescriptorIndex) const override;
+        size_t getOutputVoiceCount(size_t outputDescriptorIndex) const override;
+        void setOutputVoiceCount(std::string const& identifier, size_t count) override;
+
+        void reset() override;
+        FeatureSet process(const float* const* inputBuffers, Vamp::RealTime timestamp) override;
+        FeatureSet getRemainingFeatures() override;
+
+    private:
+        static size_t constexpr gMaxVoices = 8;
+        size_t mNumVoices{3};
+        size_t mBlockIndex{0};
+    };
 } // namespace IvePluginExample

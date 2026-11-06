@@ -3,9 +3,10 @@
 
 The Ircam Vamp Extension (IVE) provides an interface for 
 - receiving features before analysis, 
-- defining additional features on output.
+- defining additional features on output,
+- defining several voices for an output (e.g. the pitches of a polyphonic analysis), whose number is controlled by the host.
 
-These features are implemented in the CopyMarker and RandomPoint example plug-ins respectively.
+These features are implemented in the CopyMarker, RandomPoint and MultiVoices example plug-ins respectively.
 
 ## Compilation
 
