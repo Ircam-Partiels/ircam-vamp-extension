@@ -51,6 +51,9 @@ if(IVE_BUILD_HOST_LIBRARY OR IVE_BUILD_VAMP_HOST_LIBRARY)
     target_compile_options(vamp_host PRIVATE -Wno-conversion)
   endif()
   target_include_directories(vamp_host PUBLIC ${VAMP_SDK_PATH})
+  # The host SDK loads the plugins with dlopen, dlsym... (CMAKE_DL_LIBS is empty
+  # on the platforms that don't require a specific library)
+  target_link_libraries(vamp_host PUBLIC ${CMAKE_DL_LIBS})
 endif()
 
 if(IVE_BUILD_HOST_LIBRARY)
