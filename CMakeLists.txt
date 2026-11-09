@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(IrcamVampExtension VERSION 0.0.6 LANGUAGES C CXX)
+# The version is defined by the API version of the descriptor in ive.h
+set(IVE_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/Source/ive.h)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${IVE_HEADER})
+file(STRINGS ${IVE_HEADER} IVE_VERSION_DEFINITIONS REGEX "^#define IVE_VERSION_(MAJOR|MINOR|PATCH) [0-9]+$")
+foreach(IVE_VERSION_PART MAJOR MINOR PATCH)
+  string(REGEX MATCH "IVE_VERSION_${IVE_VERSION_PART} ([0-9]+)" IVE_VERSION_DEFINITION "${IVE_VERSION_DEFINITIONS}")
+  if(NOT IVE_VERSION_DEFINITION)
+    message(FATAL_ERROR "IVE_VERSION_${IVE_VERSION_PART} is not defined in ${IVE_HEADER}")
+  endif()
+  set(IVE_VERSION_${IVE_VERSION_PART} ${CMAKE_MATCH_1})
+endforeach()
+
+project(IrcamVampExtension VERSION ${IVE_VERSION_MAJOR}.${IVE_VERSION_MINOR}.${IVE_VERSION_PATCH} LANGUAGES C CXX)
 
 option(IVE_PLUGIN_EXAMPLE "Generate the IVE pluhin example" OFF)
 option(IVE_BUILD_HOST_LIBRARY "Generate the IVE host library" ON)
@@ -38,11 +50,6 @@ if(IVE_BUILD_HOST_LIBRARY OR IVE_BUILD_VAMP_HOST_LIBRARY)
   source_group("Vamp/Host" FILES ${VAMP_HOST_SDK_HEADERS} ${VAMP_HOST_SDK_SOURCES})
   add_library(vamp_host STATIC ${VAMP_HOST_SDK_HEADERS} ${VAMP_HOST_SDK_SOURCES})
   target_compile_definitions(vamp_host PUBLIC _VAMP_NO_HOST_NAMESPACE=1)
-  target_compile_definitions(vamp_host PUBLIC 
-    IVE_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
-    IVE_VERSION_MINOR=${PROJECT_VERSION_MINOR}
-    IVE_VERSION_PATCH=${PROJECT_VERSION_PATCH}
-  )
   if(WIN32)
     target_compile_definitions(vamp_host PRIVATE _USE_MATH_DEFINES)
     target_compile_options(vamp_host PRIVATE /wd4996 /wd4267)
@@ -82,11 +89,6 @@ if(IVE_BUILD_VAMP_PLUGIN_LIBRARY OR IVE_BUILD_PLUGIN_LIBRARY)
   add_library(vamp_plugin STATIC ${VAMP_PLUGIN_SDK_HEADERS} ${VAMP_PLUGIN_SDK_SOURCES})
   set_target_properties(vamp_plugin PROPERTIES CXX_STANDARD 20)
   set_target_properties(vamp_plugin PROPERTIES CXX_STANDARD_REQUIRED ON)
-  target_compile_definitions(vamp_plugin PUBLIC 
-    IVE_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
-    IVE_VERSION_MINOR=${PROJECT_VERSION_MINOR}
-    IVE_VERSION_PATCH=${PROJECT_VERSION_PATCH}
-  )
   if(WIN32)
     target_compile_definitions(vamp_plugin PRIVATE _USE_MATH_DEFINES)
     target_compile_options(vamp_plugin PRIVATE /wd4996 /wd4267)

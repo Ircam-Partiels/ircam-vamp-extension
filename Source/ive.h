@@ -1,5 +1,12 @@
 #pragma once
 
+// The version of the API advertised by the plugins in their descriptors (the host only uses the functions supported by
+// this version). It must be incremented when functions are added to the descriptor, and it is the version of the
+// project used by CMake.
+#define IVE_VERSION_MAJOR 0
+#define IVE_VERSION_MINOR 0
+#define IVE_VERSION_PATCH 6
+
 // clang-format off
 #ifdef __cplusplus
 #define IVE_EXTERN_CPP_BEGIN extern "C" {
