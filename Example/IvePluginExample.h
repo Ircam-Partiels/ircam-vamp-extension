@@ -104,4 +104,46 @@ namespace IvePluginExample
         size_t mNumVoices{3};
         size_t mBlockIndex{0};
     };
+
+    class AliasParameters
+    : public Vamp::Plugin
+    , public Ive::PluginExtension
+    {
+    public:
+        AliasParameters(float sampleRate);
+        ~AliasParameters() override = default;
+
+        bool initialise(size_t channels, size_t stepSize, size_t blockSize) override;
+
+        std::string getMaker() const override;
+        int getPluginVersion() const override;
+        std::string getCopyright() const override;
+
+        InputDomain getInputDomain() const override;
+        std::string getIdentifier() const override;
+        std::string getName() const override;
+        std::string getDescription() const override;
+
+        size_t getPreferredBlockSize() const override;
+        ParameterList getParameterDescriptors() const override;
+        float getParameter(std::string identifier) const override;
+        void setParameter(std::string identifier, float value) override;
+        OutputList getOutputDescriptors() const override;
+
+        // Ive::PluginExtension
+        bool isAliasParameter(std::string const& identifier) const override;
+
+        void reset() override;
+        FeatureSet process(const float* const* inputBuffers, Vamp::RealTime timestamp) override;
+        FeatureSet getRemainingFeatures() override;
+
+    private:
+        float toSize(float duration) const;
+        float toDuration(float size) const;
+
+        static float constexpr gMinDuration = 1.0f;
+        static float constexpr gMaxDuration = 1000.0f;
+        static float constexpr gDefaultDuration = 20.0f;
+        float mDuration{gDefaultDuration};
+    };
 } // namespace IvePluginExample

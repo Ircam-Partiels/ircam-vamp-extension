@@ -377,6 +377,173 @@ Vamp::Plugin::FeatureSet IvePluginExample::MultiVoices::getRemainingFeatures()
     return {};
 }
 
+IvePluginExample::AliasParameters::AliasParameters(float sampleRate)
+: Vamp::Plugin(sampleRate)
+{
+}
+
+std::string IvePluginExample::AliasParameters::getMaker() const
+{
+    return "IVE";
+}
+
+int IvePluginExample::AliasParameters::getPluginVersion() const
+{
+    return 1;
+}
+
+std::string IvePluginExample::AliasParameters::getCopyright() const
+{
+    return "IVE Plugin.";
+}
+
+bool IvePluginExample::AliasParameters::initialise(size_t, size_t, size_t)
+{
+    reset();
+    return true;
+}
+
+Vamp::Plugin::InputDomain IvePluginExample::AliasParameters::getInputDomain() const
+{
+    return TimeDomain;
+}
+
+std::string IvePluginExample::AliasParameters::getIdentifier() const
+{
+    return "ivealiasparameters";
+}
+
+std::string IvePluginExample::AliasParameters::getName() const
+{
+    return "Alias Parameters";
+}
+
+std::string IvePluginExample::AliasParameters::getDescription() const
+{
+    return "Returns the duration and the size of a window, the size in samples being an alias of the duration in milliseconds.";
+}
+
+size_t IvePluginExample::AliasParameters::getPreferredBlockSize() const
+{
+    return 256;
+}
+
+float IvePluginExample::AliasParameters::toSize(float duration) const
+{
+    return std::max(std::round(duration * m_inputSampleRate / 1000.0f), 1.0f);
+}
+
+float IvePluginExample::AliasParameters::toDuration(float size) const
+{
+    return std::clamp(size * 1000.0f / m_inputSampleRate, gMinDuration, gMaxDuration);
+}
+
+Vamp::Plugin::ParameterList IvePluginExample::AliasParameters::getParameterDescriptors() const
+{
+    ParameterList list;
+    {
+        ParameterDescriptor d;
+        d.identifier = "duration";
+        d.name = "Window Duration";
+        d.description = "The duration of the window";
+        d.unit = "ms";
+        d.minValue = gMinDuration;
+        d.maxValue = gMaxDuration;
+        d.defaultValue = gDefaultDuration;
+        d.isQuantized = false;
+        list.push_back(std::move(d));
+    }
+    {
+        ParameterDescriptor d;
+        d.identifier = "size";
+        d.name = "Window Size";
+        d.description = "The size of the window";
+        d.unit = "samples";
+        d.minValue = toSize(gMinDuration);
+        d.maxValue = toSize(gMaxDuration);
+        d.defaultValue = toSize(gDefaultDuration);
+        d.isQuantized = true;
+        d.quantizeStep = 1.0f;
+        list.push_back(std::move(d));
+    }
+    return list;
+}
+
+float IvePluginExample::AliasParameters::getParameter(std::string identifier) const
+{
+    if(identifier == "duration")
+    {
+        return mDuration;
+    }
+    if(identifier == "size")
+    {
+        // The value of the alias parameter only depends on the real parameter (and on the sample rate)
+        return toSize(mDuration);
+    }
+    return 0.0f;
+}
+
+void IvePluginExample::AliasParameters::setParameter(std::string identifier, float value)
+{
+    if(identifier == "duration")
+    {
+        mDuration = std::clamp(value, gMinDuration, gMaxDuration);
+    }
+    else if(identifier == "size")
+    {
+        // The alias parameter defines the real parameter, but a value that corresponds to the current duration doesn't
+        // modify it, so the hosts that don't support the extension (and that also restore the alias parameter) don't
+        // lose the precision of the duration
+        auto const size = std::clamp(std::round(value), toSize(gMinDuration), toSize(gMaxDuration));
+        if(std::abs(size - toSize(mDuration)) > 0.5f)
+        {
+            mDuration = toDuration(size);
+        }
+    }
+}
+
+bool IvePluginExample::AliasParameters::isAliasParameter(std::string const& identifier) const
+{
+    return identifier == "size";
+}
+
+Vamp::Plugin::OutputList IvePluginExample::AliasParameters::getOutputDescriptors() const
+{
+    OutputList list;
+    OutputDescriptor d;
+    d.identifier = "window";
+    d.name = "Window";
+    d.description = "The duration and the size of the window";
+    d.unit = "";
+    d.hasFixedBinCount = true;
+    d.binCount = 2;
+    d.binNames = {"Duration", "Size"};
+    d.hasKnownExtents = false;
+    d.isQuantized = false;
+    d.sampleType = OutputDescriptor::SampleType::OneSamplePerStep;
+    d.hasDuration = false;
+    list.push_back(std::move(d));
+    return list;
+}
+
+void IvePluginExample::AliasParameters::reset()
+{
+}
+
+Vamp::Plugin::FeatureSet IvePluginExample::AliasParameters::process(const float* const*, Vamp::RealTime)
+{
+    Vamp::Plugin::FeatureSet set;
+    Feature feature;
+    feature.values = {mDuration, toSize(mDuration)};
+    set[0].push_back(std::move(feature));
+    return set;
+}
+
+Vamp::Plugin::FeatureSet IvePluginExample::AliasParameters::getRemainingFeatures()
+{
+    return {};
+}
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -402,6 +569,11 @@ extern "C"
             case 2:
             {
                 static Vamp::PluginAdapter<IvePluginExample::MultiVoices> adaptater;
+                return adaptater.getDescriptor();
+            }
+            case 3:
+            {
+                static Vamp::PluginAdapter<IvePluginExample::AliasParameters> adaptater;
                 return adaptater.getDescriptor();
             }
             default:
@@ -430,6 +602,10 @@ extern "C"
             case 2:
             {
                 return Ive::PluginAdapter::getDescriptor<IvePluginExample::MultiVoices>();
+            }
+            case 3:
+            {
+                return Ive::PluginAdapter::getDescriptor<IvePluginExample::AliasParameters>();
             }
             default:
             {

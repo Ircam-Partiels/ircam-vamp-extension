@@ -174,6 +174,16 @@ namespace PluginAdapter
             }
             plugin->setOutputVoiceCount(std::string(identifier), static_cast<size_t>(count));
         };
+
+        descriptor.isAliasParameter = [](VampPluginHandle handle, char const* identifier) -> int
+        {
+            auto const* plugin = static_cast<PluginExtension const*>(reinterpret_cast<DerivedPlugin*>(handle));
+            if(plugin == nullptr || identifier == nullptr)
+            {
+                return 0;
+            }
+            return plugin->isAliasParameter(std::string(identifier)) ? 1 : 0;
+        };
         initialized = true;
         return std::addressof(descriptor);
     }

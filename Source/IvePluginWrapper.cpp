@@ -287,6 +287,15 @@ void PluginWrapper::setOutputVoiceCount(std::string const& identifier, size_t co
     mDescriptor->setOutputVoiceCount(mPluginHandle, identifier.c_str(), static_cast<unsigned int>(count));
 }
 
+bool PluginWrapper::isAliasParameter(std::string const& identifier) const
+{
+    if(!isVersionSupported(0, 0, 7))
+    {
+        return false;
+    }
+    return mDescriptor->isAliasParameter(mPluginHandle, identifier.c_str()) != 0;
+}
+
 bool PluginWrapper::isVersionSupported(int major, int minor, int patch) const
 {
     if(mDescriptor == nullptr || mPluginHandle == nullptr)

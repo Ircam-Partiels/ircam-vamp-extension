@@ -5,7 +5,7 @@
 // project used by CMake.
 #define IVE_VERSION_MAJOR 0
 #define IVE_VERSION_MINOR 0
-#define IVE_VERSION_PATCH 6
+#define IVE_VERSION_PATCH 7
 
 // clang-format off
 #ifdef __cplusplus
@@ -86,6 +86,15 @@ typedef struct _IvePluginDescriptor
     // before retrieving the output descriptors from the instance of the plugin (because the Vamp plugin adapter caches
     // them until a parameter or a program changes) and before the initialisation of the plugin.
     void (*setOutputVoiceCount)(VampPluginHandle handle, char const* identifier, unsigned int count);
+
+    // 0.0.7
+    // An alias parameter is a parameter that defines and represents other parameters, the real parameters (e.g. a
+    // window size in samples that is an alias of a window duration in milliseconds). Its value only depends on the
+    // values of the real parameters (and on the sample rate), so the host neither saves nor compares it: it sets the
+    // real parameters to restore the state of the plugin, and it retrieves the values of the real parameters after
+    // setting an alias parameter. An alias parameter must not be the alias of another alias parameter. Returns 1 if
+    // the parameter is an alias parameter, otherwise 0.
+    int (*isAliasParameter)(VampPluginHandle handle, char const* identifier);
 } IvePluginDescriptor;
 
 IVE_EXTERN IvePluginDescriptor const* iveGetPluginDescriptor(unsigned int hostApiVersion, unsigned int index);

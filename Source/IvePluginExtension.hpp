@@ -80,4 +80,15 @@ public:
     //! @param identifier The identifier of the first output of the voices
     //! @param count The number of voices (in the range of the descriptor)
     virtual void setOutputVoiceCount([[maybe_unused]] std::string const& identifier, [[maybe_unused]] size_t count) {}
+
+    //! @brief Gets if a parameter is an alias parameter
+    //! @details An alias parameter defines and represents other parameters, the real parameters (e.g. a window size
+    //! in samples that is an alias of a window duration in milliseconds). Its value returned by getParameter() only
+    //! depends on the values of the real parameters (and on the sample rate), so the host neither saves nor compares
+    //! it: the host restores the state of the plugin by setting the real parameters, and it retrieves the values of
+    //! the real parameters with getParameter() after setting an alias parameter with setParameter(). An alias
+    //! parameter must not be the alias of another alias parameter.
+    //! @param identifier The identifier of the parameter
+    //! @return True if the parameter is an alias parameter
+    virtual bool isAliasParameter([[maybe_unused]] std::string const& identifier) const { return false; }
 };
