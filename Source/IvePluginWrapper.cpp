@@ -296,6 +296,15 @@ bool PluginWrapper::isAliasParameter(std::string const& identifier) const
     return mDescriptor->isAliasParameter(mPluginHandle, identifier.c_str()) != 0;
 }
 
+void PluginWrapper::setFrequencyDomainWindow(std::vector<float> const& window)
+{
+    if(!isVersionSupported(0, 0, 8))
+    {
+        return;
+    }
+    mDescriptor->setFrequencyDomainWindow(mPluginHandle, static_cast<unsigned int>(window.size()), window.empty() ? nullptr : window.data());
+}
+
 bool PluginWrapper::isVersionSupported(int major, int minor, int patch) const
 {
     if(mDescriptor == nullptr || mPluginHandle == nullptr)

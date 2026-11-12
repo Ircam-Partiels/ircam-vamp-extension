@@ -5,7 +5,8 @@ The Ircam Vamp Extension (IVE) provides an interface for
 - receiving features before analysis, 
 - defining additional features on output,
 - defining several voices for an output (e.g. the pitches of a polyphonic analysis), whose number is controlled by the host,
-- defining alias parameters that define and represent other parameters without being saved (e.g. a window size in samples that is an alias of a window duration in milliseconds).
+- defining alias parameters that define and represent other parameters without being saved (e.g. a window size in samples that is an alias of a window duration in milliseconds),
+- receiving the window applied by the host before the FFT for the plugins that expect frequency-domain input (e.g. to normalize the amplitudes of a spectrum).
 
 These features are implemented in the CopyMarker, RandomPoint, MultiVoices and AliasParameters example plug-ins respectively.
 

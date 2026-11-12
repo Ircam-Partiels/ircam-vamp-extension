@@ -5,7 +5,7 @@
 // project used by CMake.
 #define IVE_VERSION_MAJOR 0
 #define IVE_VERSION_MINOR 0
-#define IVE_VERSION_PATCH 7
+#define IVE_VERSION_PATCH 8
 
 // clang-format off
 #ifdef __cplusplus
@@ -95,6 +95,14 @@ typedef struct _IvePluginDescriptor
     // setting an alias parameter. An alias parameter must not be the alias of another alias parameter. Returns 1 if
     // the parameter is an alias parameter, otherwise 0.
     int (*isAliasParameter)(VampPluginHandle handle, char const* identifier);
+
+    // 0.0.8
+    // Sets the window applied by the host to each block of audio before the FFT, for the plugins that expect
+    // frequency-domain input. The window contains one coefficient per sample of the block, so the plugin can know the
+    // exact scaling of the spectrum (e.g. the sum of the coefficients is the gain of the window for a sinusoid). The
+    // host sets the window after the initialisation of the plugin and before the first call to process(), and sets it
+    // again if the window changes. If the host doesn't set the window, the plugin must assume a default window.
+    void (*setFrequencyDomainWindow)(VampPluginHandle handle, unsigned int size, float const* window);
 } IvePluginDescriptor;
 
 IVE_EXTERN IvePluginDescriptor const* iveGetPluginDescriptor(unsigned int hostApiVersion, unsigned int index);

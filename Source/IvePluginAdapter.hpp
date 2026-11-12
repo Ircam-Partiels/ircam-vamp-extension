@@ -184,6 +184,16 @@ namespace PluginAdapter
             }
             return plugin->isAliasParameter(std::string(identifier)) ? 1 : 0;
         };
+
+        descriptor.setFrequencyDomainWindow = [](VampPluginHandle handle, unsigned int size, float const* window)
+        {
+            auto* plugin = static_cast<PluginExtension*>(reinterpret_cast<DerivedPlugin*>(handle));
+            if(plugin == nullptr)
+            {
+                return;
+            }
+            plugin->setFrequencyDomainWindow(window != nullptr ? std::vector<float>(window, window + size) : std::vector<float>{});
+        };
         initialized = true;
         return std::addressof(descriptor);
     }

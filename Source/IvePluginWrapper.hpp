@@ -38,6 +38,7 @@ public:
     size_t getOutputVoiceCount(size_t outputDescriptorIndex) const override;
     void setOutputVoiceCount(std::string const& identifier, size_t count) override;
     bool isAliasParameter(std::string const& identifier) const override;
+    void setFrequencyDomainWindow(std::vector<float> const& window) override;
 
 private:
     bool isVersionSupported(int major, int minor, int patch) const;

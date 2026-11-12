@@ -91,4 +91,13 @@ public:
     //! @param identifier The identifier of the parameter
     //! @return True if the parameter is an alias parameter
     virtual bool isAliasParameter([[maybe_unused]] std::string const& identifier) const { return false; }
+
+    //! @brief Sets the window applied by the host to each block of audio before the FFT
+    //! @details For a plugin that expects frequency-domain input, the window contains one coefficient per sample of
+    //! the block, so the plugin can know the exact scaling of the spectrum (e.g. the sum of the coefficients is the gain
+    //! of the window for a sinusoid). The host sets the window after the initialisation of the plugin and before the
+    //! first call to process(), and sets it again if the window changes. If the host doesn't set the window, the plugin
+    //! must assume a default window.
+    //! @param window The coefficients of the window
+    virtual void setFrequencyDomainWindow([[maybe_unused]] std::vector<float> const& window) {}
 };
