@@ -57,6 +57,11 @@ typedef struct _IvePluginDescriptor
     VampInputDescriptor* (*getInputDescriptor)(VampPluginHandle handle, unsigned int index);
     void (*releaseInputDescriptor)(VampInputDescriptor* inputDescriptor);
 
+    // Sets the features of the inputs (the index of a feature list is the index of its input descriptor). The host sets
+    // them after the initialisation of the plugin and before the first call to process(). The output descriptors can
+    // depend on them (e.g. the number of bins and their names), so the host must set them before retrieving the output
+    // descriptors from the initialised instance of the plugin (because the Vamp plugin adapter caches them until the
+    // next initialisation or until a parameter or a program changes).
     void (*setPreComputingFeatures)(VampPluginHandle handle, unsigned int numFeatures, VampFeatureList const* features);
 
     // 0.0.2

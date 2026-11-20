@@ -13,7 +13,13 @@ public:
     virtual InputList getInputDescriptors() const { return {}; }
 
     //! @brief Sets the pre-computing features of the plugin
-    //! @details Before any blocks have been processed, use pre-computing features to prepare the process.
+    //! @details Before any blocks have been processed, use pre-computing features to prepare the process. The host
+    //! sets the pre-computing features after the initialisation of the plugin and before the first call to process().
+    //! The output descriptors can depend on the pre-computing features (e.g. the number of bins and their names), so
+    //! the host must set them before retrieving the output descriptors from the initialised instance of the plugin
+    //! (because the Vamp plugin adapter caches them until the next initialisation or until a parameter or a program
+    //! changes).
+    //! @param fs The features of the inputs (the key of a feature list is the index of its input descriptor)
     virtual void setPreComputingFeatures([[maybe_unused]] Vamp::Plugin::FeatureSet const& fs)
     {
         assert(false);
